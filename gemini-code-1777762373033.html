@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#000000" />
+  <title>TOTAL ENTROPY</title>
+  <style>
+    :root {
+      --bg: #000;
+      --accent: #fff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body, html {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: #fff;
+      font-family: 'SF Mono', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+    }
+
+    #starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Контейнер для двух холстов (старый и новый) */
+    .stage-box {
+      position: relative;
+      width: min(85vw, 85vh, 512px);
+      aspect-ratio: 1;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: #000;
+      cursor: crosshair;
+      overflow: hidden;
+    }
+
+    canvas.layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      transition: opacity 0.4s ease-in-out;
+    }
+
+    canvas.hidden { opacity: 0; }
+    canvas.visible { opacity: 1; }
+
+    .controls {
+      margin-top: 40px;
+      display: flex;
+      gap: 12px;
+      width: min(85vw, 400px);
+    }
+
+    .btn {
+      position: relative;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 22px;
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      cursor: pointer;
+      backdrop-filter: blur(5px);
+      flex: 1;
+      overflow: hidden;
+      transition: transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-res { flex: 0 0 90px; }
+
+    .progress-bar {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 3px;
+      background: var(--accent);
+      width: 0%;
+      opacity: 0;
+    }
+
+    .holding-active .progress-bar {
+      opacity: 1;
+      transition: width 1s linear, opacity 0.3s;
+      width: 100%;
+    }
+
+    /* Анимация "загрузки" на холсте */
+    .loading-pulse {
+      animation: pulse-op 0.8s infinite alternate;
+    }
+    @keyframes pulse-op {
+      from { opacity: 1; filter: brightness(1); }
+      to { opacity: 0.7; filter: brightness(1.5); }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="starfield"></canvas>
+
+  <div class="container">
+    <div class="stage-box" id="stage">
+      <canvas id="canvasA" class="layer visible"></canvas>
+      <canvas id="canvasB" class="layer hidden"></canvas>
+      <div class="progress-bar" id="stageProgress"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-res" id="resBtn">2^7</button>
+      <button class="btn" id="rerollBtn">
+        REROLL
+        <div class="progress-bar" id="btnProgress"></div>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const canvasA = document.getElementById('canvasA');
+    const canvasB = document.getElementById('canvasB');
+    const resBtn = document.getElementById('resBtn');
+    const rerollBtn = document.getElementById('rerollBtn');
+    const stage = document.getElementById('stage');
+
+    let pow = 7;
+    let isBW = false;
+    let currentLayer = canvasA;
+    let lastClickTime = 0;
+    let isGenerating = false;
+
+    // --- 1. ЗВЕЗДЫ GROK ---
+    const starCanvas = document.getElementById('starfield');
+    const sCtx = starCanvas.getContext('2d');
+    let stars = [];
+    function initStars() {
+      starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight;
+      stars = [];
+      for (let i = 0; i < 120; i++) {
+        stars.push({
+          x: Math.random() * starCanvas.width,
+          y: Math.random() * starCanvas.height,
+          size: Math.random() * 1.6,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          a: Math.random()
+        });
+      }
+    }
+    function drawStars() {
+      sCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+      stars.forEach(s => {
+        s.x = (s.x + s.vx + starCanvas.width) % starCanvas.width;
+        s.y = (s.y + s.vy + starCanvas.height) % starCanvas.height;
+        sCtx.globalAlpha = s.a; sCtx.fillStyle = '#fff';
+        sCtx.beginPath(); sCtx.arc(s.x, s.y, s.size, 0, 7); sCtx.fill();
+      });
+      requestAnimationFrame(drawStars);
+    }
+    initStars(); drawStars();
+    window.onresize = initStars;
+
+    // --- 2. WORKER (АБСОЛЮТНЫЙ ХАОС) ---
+    const workerBlob = new Blob([`
+      self.onmessage = function(e) {
+        const { size, isBW, id } = e.data;
+        const len = size * size * 4;
+        const buf = new Uint8ClampedArray(len);
+        self.crypto.getRandomValues(buf);
+        if (isBW) {
+          for (let i = 0; i < len; i += 4) {
+            const v = buf[i] > 127 ? 255 : 0;
+            buf[i] = buf[i+1] = buf[i+2] = v;
+            buf[i+3] = 255;
+          }
+        } else {
+          for (let i = 3; i < len; i += 4) buf[i] = 255;
+        }
+        self.postMessage({ buf, size, id }, [buf.buffer]);
+      };
+    `], { type: 'application/javascript' });
+
+    const worker = new Worker(URL.createObjectURL(workerBlob));
+    let requestId = 0;
+
+    worker.onmessage = (e) => {
+      if (e.data.id !== requestId) return; // Игнорируем старые запросы
+
+      const nextLayer = currentLayer === canvasA ? canvasB : canvasA;
+      nextLayer.width = nextLayer.height = e.data.size;
+      const nCtx = nextLayer.getContext('2d', { alpha: false });
+      nCtx.putImageData(new ImageData(e.data.buf, e.data.size, e.data.size), 0, 0);
+
+      const now = Date.now();
+      const isFastClick = (now - lastClickTime) < 300;
+
+      // Смена слоев
+      if (isFastClick) {
+        // Мгновенно при быстрой стрельбе
+        canvasA.style.transition = canvasB.style.transition = 'none';
+      } else {
+        canvasA.style.transition = canvasB.style.transition = 'opacity 0.4s ease-in-out';
+      }
+
+      currentLayer.classList.replace('visible', 'hidden');
+      nextLayer.classList.replace('hidden', 'visible');
+      currentLayer = nextLayer;
+
+      isGenerating = false;
+      stage.classList.remove('loading-pulse');
+    };
+
+    function generate() {
+      isGenerating = true;
+      requestId++;
+      lastClickTime = Date.now();
+      
+      // На больших разрешениях добавляем эффект "пульсации" загрузки
+      if (pow >= 9) stage.classList.add('loading-pulse');
+      
+      worker.postMessage({ size: Math.pow(2, pow), isBW, id: requestId });
+    }
+
+    // --- 3. ЛОГИКА УДЕРЖАНИЯ (HOLD) ---
+    function setupHold(el, progressId, onShort, onLong) {
+      let waitT, fillT, isHolding = false;
+      const prog = document.getElementById(progressId);
+
+      const start = (e) => {
+        e.preventDefault(); isHolding = true;
+        waitT = setTimeout(() => {
+          if (isHolding) {
+            el.classList.add('holding-active');
+            fillT = setTimeout(() => { if (isHolding) { onLong(); reset(); } }, 1000);
+          }
+        }, 2000); // 2 сек тишины перед полоской
+      };
+
+      const reset = () => {
+        isHolding = false; clearTimeout(waitT); clearTimeout(fillT);
+        el.classList.remove('holding-active'); prog.style.width = '0%';
+      };
+
+      const end = () => {
+        if (isHolding) {
+          if (!el.classList.contains('holding-active')) onShort();
+          reset();
+        }
+      };
+
+      el.addEventListener('pointerdown', start);
+      el.addEventListener('pointerup', end);
+      el.addEventListener('pointerleave', reset);
+    }
+
+    resBtn.onclick = () => {
+      pow = pow >= 10 ? 3 : pow + 1;
+      resBtn.textContent = `2^${pow}`;
+      generate();
+    };
+
+    setupHold(rerollBtn, 'btnProgress', generate, () => {
+      isBW = !isBW; generate();
+      if (navigator.vibrate) navigator.vibrate(30);
+    });
+
+    setupHold(stage, 'stageProgress', () => {}, () => {
+      const t = document.createElement('canvas');
+      t.width = t.height = 1024;
+      const tc = t.getContext('2d');
+      tc.imageSmoothingEnabled = false;
+      tc.drawImage(currentLayer, 0, 0, 1024, 1024);
+      const a = document.createElement('a');
+      a.download = `VOID_${Date.now()}.png`; a.href = t.toDataURL(); a.click();
+      if (navigator.vibrate) navigator.vibrate([20, 30]);
+    });
+
+    window.onkeydown = (e) => { if (e.code === 'Space' || e.code === 'Enter') generate(); };
+
+    // Первый запуск
+    generate();
+  </script>
+</body>
+</html>
