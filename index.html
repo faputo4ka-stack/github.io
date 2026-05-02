@@ -1,31 +1,71 @@
-<!DOCTYPE html>
-<html lang="ru">
+<!DOCTYPE html><html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<meta name="theme-color" content="#000000" />
-<title>REROLL</title>
-
-<style>
-:root {
-  color-scheme: dark;
-  --bg: #000;
-  --panel: rgba(14,14,14,.96);
-  --line: rgba(255,255,255,.16);
-  --line-strong: rgba(255,255,255,.28);
-  --text: #fff;
-}
-
-* { box-sizing: border-box; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#000000" />
+  <title>REROLL</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #000;
+      --panel: rgba(14,14,14,.96);
+      --line: rgba(255,255,255,.16);
+      --line-strong: rgba(255,255,255,.28);
+      --text: #fff;
+    }* { box-sizing: border-box; }
 
 html, body {
   width: 100%;
   height: 100%;
   margin: 0;
   overflow: hidden;
+  overscroll-behavior: none;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, sans-serif;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+}
+
+body::before {
+  background-image:
+    radial-gradient(circle at 7% 14%, rgba(255,255,255,.95) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 12% 37%, rgba(255,255,255,.32) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 18% 82%, rgba(255,255,255,.55) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 25% 20%, rgba(255,255,255,.72) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 33% 59%, rgba(255,255,255,.42) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 41% 12%, rgba(255,255,255,.88) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 49% 74%, rgba(255,255,255,.35) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 57% 28%, rgba(255,255,255,.62) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 63% 83%, rgba(255,255,255,.78) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 70% 18%, rgba(255,255,255,.48) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 77% 51%, rgba(255,255,255,.88) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 84% 11%, rgba(255,255,255,.38) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 91% 66%, rgba(255,255,255,.64) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 96% 26%, rgba(255,255,255,.58) 0 1px, transparent 1.6px);
+  opacity: .88;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,.06));
+}
+
+body::after {
+  background-image:
+    radial-gradient(circle at 21% 26%, rgba(255,255,255,.05) 0 12px, transparent 13px),
+    radial-gradient(circle at 76% 78%, rgba(255,255,255,.04) 0 14px, transparent 15px),
+    radial-gradient(circle at 55% 49%, rgba(255,255,255,.03) 0 18px, transparent 19px);
+  opacity: .5;
+  filter: blur(18px);
 }
 
 .app {
@@ -33,126 +73,689 @@ html, body {
   height: 100%;
   display: grid;
   grid-template-rows: 1fr auto;
+  padding: calc(10px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
+  position: relative;
 }
 
 .stage-wrap {
   display: grid;
   place-items: center;
+  min-height: 0;
+  align-content: start;
+  padding-top: clamp(6px, 3vh, 26px);
+  padding-bottom: clamp(76px, 13vh, 126px);
 }
 
 .stage {
-  width: min(90vw, 500px);
-  aspect-ratio: 1;
-  border: 1px solid var(--line);
+  width: min(88vw, 88vh, 560px);
+  aspect-ratio: 1 / 1;
+  position: relative;
+  border-radius: 0;
+  border: 1px solid var(--line-strong);
+  background: #000;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.04) inset,
+    0 20px 60px rgba(0,0,0,.58),
+    0 0 40px rgba(255,255,255,.025);
+  overflow: hidden;
+}
+
+.stage::before,
+.stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.stage::before {
+  background:
+    radial-gradient(circle at 12% 14%, rgba(255,255,255,.10) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 86% 18%, rgba(255,255,255,.08) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 74% 82%, rgba(255,255,255,.09) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 22% 76%, rgba(255,255,255,.07) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,.03) 0 2px, transparent 3px);
+  opacity: .95;
+  mix-blend-mode: screen;
+}
+
+.stage::after {
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,.03) 50%, transparent);
+  opacity: .26;
+  animation: drift 8s linear infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes drift {
+  0% { transform: translateY(-18%); }
+  100% { transform: translateY(18%); }
 }
 
 canvas {
   width: 100%;
   height: 100%;
   display: block;
+  image-rendering: pixelated;
 }
 
 .bottom {
   position: fixed;
-  bottom: 20px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  width: min(92vw, 520px);
+  z-index: 20;
 }
 
-button {
-  padding: 12px 16px;
-  border: 1px solid #444;
-  background: #111;
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn {
+  height: 68px;
+  border: 1px solid rgba(255,255,255,.24);
+  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.03));
   color: #fff;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.04) inset,
+    0 14px 30px rgba(0,0,0,.58),
+    0 0 26px rgba(255,255,255,.06);
+  backdrop-filter: blur(8px);
+}
+
+.btn:active {
+  transform: translateY(1px);
+  border-color: rgba(255,255,255,.36);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.06) inset,
+    0 8px 20px rgba(0,0,0,.65),
+    0 0 18px rgba(255,255,255,.08);
+}
+
+.dots {
+  width: 58px;
+  padding: 0;
+  font-size: 20px;
+  letter-spacing: .08em;
+  line-height: 1;
+  border-radius: 0;
+}
+
+.reroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 18px;
+  font-size: 16px;
+  border-radius: 0;
+}
+
+.menu {
+  position: fixed;
+  left: 50%;
+  bottom: calc(92px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 22px) scale(.985);
+  width: min(92vw, 520px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .22s ease, opacity .22s ease;
+  z-index: 30;
+}
+
+.menu.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.sheet {
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(14,14,14,.96);
+  box-shadow: 0 18px 50px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.03) inset;
+  overflow: hidden;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  letter-spacing: .06em;
   cursor: pointer;
 }
-</style>
+
+.menu-item:last-child { border-bottom: 0; }
+.menu-item:active { background: rgba(255,255,255,.05); }
+.item-right { opacity: .72; font-size: 13px; }
+
+@media (max-width: 420px) {
+  .stage { width: min(90vw, 90vh, 420px); }
+  .btn { height: 64px; }
+  .dots { width: 54px; }
+  .reroll { font-size: 15px; }
+  .menu-item { padding: 13px 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage::after, .menu { transition: none; animation: none; }
+}
+
+  </style>
 </head>
-
 <body>
-
-<div class="app">
-  <div class="stage-wrap">
-    <div class="stage">
-      <canvas id="canvas"></canvas>
+  <div class="app">
+    <div class="stage-wrap">
+      <div class="stage" id="stage" aria-label="random image">
+        <canvas id="canvas" width="128" height="128"></canvas>
+      </div>
     </div>
-  </div>
-</div>
+  </div>  <div class="menu" id="menu" aria-hidden="true">
+    <div class="sheet">
+      <button class="menu-item" id="toggleMode">
+        <span>B/W</span><span class="item-right" id="modeState">off</span>
+      </button>
+      <button class="menu-item" id="downloadBtn">
+        <span>PNG</span><span class="item-right">save</span>
+      </button>
+      <button class="menu-item" id="resBtn">
+        <span>2^<span id="powLabel">7</span></span><span class="item-right">resolution</span>
+      </button>
+    </div>
+  </div>  <div class="bottom">
+    <div class="row">
+      <button class="btn dots" id="dots" aria-label="menu">•••</button>
+      <button class="btn reroll" id="reroll">REROLL</button>
+    </div>
+  </div>  <script>
+    const POW_MIN = 4;
+    const POW_MAX = 9;
+    const TRANSITION_MS = 240;
+    const FAST_MODE_MS = 1400;
+    const FAST_CLICK_WINDOW = 420;
+    const FAST_CLICK_COUNT = 3;
+    const MODE_HOLD_MS = 3000;
+    const SAVE_HOLD_MS = 450;
+    const POOL_SMALL = 8;
+    const POOL_LARGE = 2;
 
-<div class="bottom">
-  <button id="dots">•••</button>
-  <button id="reroll">REROLL</button>
-</div>
+    const canvas = document.getElementById('canvas');
+    const stage = document.getElementById('stage');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const dotsBtn = document.getElementById('dots');
+    const rerollBtn = document.getElementById('reroll');
+    const menu = document.getElementById('menu');
+    const toggleModeBtn = document.getElementById('toggleMode');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const resBtn = document.getElementById('resBtn');
+    const powLabel = document.getElementById('powLabel');
+    const modeState = document.getElementById('modeState');
 
-<script>
-(() => {
+    let pow = 7;
+    let size = 1 << pow;
+    let blackWhiteMode = false;
+    let current = null;
+    let pool = [];
+    let animId = 0;
+    let animating = false;
+    let queued = null;
+    let fastModeUntil = 0;
+    let clickTimes = [];
+    let rerollHoldTimer = null;
+    let rerollHoldTriggered = false;
+    let saveTimer = null;
+    let saveTriggered = false;
 
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+    function setCanvasSize() {
+      canvas.width = size;
+      canvas.height = size;
+      powLabel.textContent = String(pow);
+    }
 
-const dotsBtn = document.getElementById('dots');
-const rerollBtn = document.getElementById('reroll');
+    function u32() {
+      const a = new Uint32Array(1);
+      crypto.getRandomValues(a);
+      return a[0] >>> 0;
+    }
 
-let size = 256;
-let current = null;
+    function randInt(max) {
+      return u32() % max;
+    }
 
-function updateCanvasSize() {
-  canvas.width = size;
-  canvas.height = size;
-}
+    function randFloat() {
+      return u32() / 0x100000000;
+    }
 
-function rand() {
-  return Math.floor(Math.random() * 255);
-}
+    function randBool() {
+      return (u32() & 1) === 1;
+    }
 
-function makeImage() {
-  const data = new Uint8ClampedArray(size * size * 4);
-  for (let i = 0; i < data.length; i += 4) {
-    data[i] = rand();
-    data[i+1] = rand();
-    data[i+2] = rand();
-    data[i+3] = 255;
-  }
-  return data;
-}
+    function hash32(n) {
+      n >>>= 0;
+      n ^= n >>> 16;
+      n = Math.imul(n, 0x7feb352d);
+      n ^= n >>> 15;
+      n = Math.imul(n, 0x846ca68b);
+      n ^= n >>> 16;
+      return n >>> 0;
+    }
 
-function draw(img) {
-  ctx.putImageData(new ImageData(img, size, size), 0, 0);
-}
+    function getPoolSize() {
+      return size >= 512 ? POOL_LARGE : POOL_SMALL;
+    }
 
-function reroll() {
-  current = makeImage();
-  draw(current);
-}
+    function shouldAnimate() {
+      return size < 512;
+    }
 
-function savePNG() {
-  canvas.toBlob((blob) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
+    function buildSeeds() {
+      const s = new Uint32Array(8);
+      crypto.getRandomValues(s);
+      return s;
+    }
 
-    // 🔥 ИСПРАВЛЕННАЯ СТРОКА
-    a.download = `noise-${size}.png`;
+    function makeRawLayer(total) {
+      const a = new Uint8Array(total);
+      crypto.getRandomValues(a);
+      return a;
+    }
 
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  });
-}
+    function makeCoordLayer(seeds, total) {
+      const a = new Uint8Array(total);
+      const s0 = seeds[0] | 0;
+      const s1 = seeds[1] | 0;
+      const s2 = seeds[2] | 0;
+      const s3 = seeds[3] | 0;
+      for (let y = 0, i = 0; y < size; y++) {
+        for (let x = 0; x < size; x++, i++) {
+          let v = (x * 374761393) ^ (y * 668265263) ^ s0 ^ (s1 << (x & 7)) ^ (s2 >>> (y & 7)) ^ s3;
+          a[i] = hash32(v + (x * 97) + (y * 57)) & 255;
+        }
+      }
+      return a;
+    }
 
-// init
-updateCanvasSize();
-reroll();
+    function makeChainLayer(seedByte, total) {
+      const raw = makeRawLayer(total);
+      const out = new Uint8Array(total);
+      out[0] = (raw[0] ^ seedByte) & 255;
+      for (let i = 1; i < total; i++) {
+        const left = raw[i - 1];
+        const up = raw[(i - size + total) % total];
+        const diag = raw[(i - size - 1 + total) % total];
+        out[i] = (raw[i] ^ ((left << 1) | (left >>> 7)) ^ ((up >>> 1) | (up << 7)) ^ diag ^ seedByte) & 255;
+      }
+      return out;
+    }
 
-// events
-rerollBtn.addEventListener('click', reroll);
-dotsBtn.addEventListener('click', savePNG);
+    function transformImage(src, s, rot, flipX, flipY) {
+      const dst = new Uint8ClampedArray(src.length);
+      for (let y = 0; y < s; y++) {
+        for (let x = 0; x < s; x++) {
+          let sx = x;
+          let sy = y;
+          if (flipX) sx = s - 1 - sx;
+          if (flipY) sy = s - 1 - sy;
+          if (rot === 1) [sx, sy] = [sy, s - 1 - sx];
+          else if (rot === 2) [sx, sy] = [s - 1 - sx, s - 1 - sy];
+          else if (rot === 3) [sx, sy] = [s - 1 - sy, sx];
+          const si = (y * s + x) * 4;
+          const di = (sy * s + sx) * 4;
+          dst[di] = src[si];
+          dst[di + 1] = src[si + 1];
+          dst[di + 2] = src[si + 2];
+          dst[di + 3] = 255;
+        }
+      }
+      return dst;
+    }
 
-})();
-</script>
+    function generatePixels() {
+      const total = size * size;
+      const seeds = buildSeeds();
+      const raw = makeRawLayer(total);
+      const coord = makeCoordLayer(seeds, total);
+      const chain = makeChainLayer(seeds[4] & 255, total);
+      const out = new Uint8ClampedArray(total * 4);
 
-</body>
+      const mode = randInt(5);
+      const w1 = 0.20 + randFloat() * 0.35;
+      const w2 = 0.20 + randFloat() * 0.35;
+      const w3 = 1 - w1 - w2;
+      const seedA = seeds[5] | 0;
+      const seedB = seeds[6] | 0;
+      const seedC = seeds[7] | 0;
+
+      for (let i = 0, p = 0; i < total; i++, p += 4) {
+        const a = raw[i];
+        const b = coord[i];
+        const c = chain[i];
+        const twist = hash32((i + 1) ^ seedA) & 255;
+        const local = (a * w1 + b * w2 + c * w3) & 255;
+        let v;
+
+        switch (mode) {
+          case 0:
+            v = (local ^ (twist + (seedB & 255))) & 255;
+            break;
+          case 1:
+            v = hash32((a << 24) ^ (b << 16) ^ (c << 8) ^ twist ^ seedB) & 255;
+            break;
+          case 2:
+            v = (local + ((a >>> 2) ^ (b >>> 3) ^ (c >>> 1))) & 255;
+            break;
+          case 3:
+            v = hash32((local << 16) ^ twist ^ seedC ^ (i * 1315423911)) & 255;
+            break;
+          default:
+            v = ((a ^ b ^ c ^ twist) + ((a & b) ^ (b & c) ^ (c & a))) & 255;
+            break;
+        }
+
+        if (blackWhiteMode) {
+          out[p] = out[p + 1] = out[p + 2] = v;
+        } else {
+          out[p] = v;
+          out[p + 1] = hash32(v ^ seedA ^ i) & 255;
+          out[p + 2] = hash32((v << 8) ^ seedB ^ (i * 31)) & 255;
+        }
+        out[p + 3] = 255;
+      }
+
+      const rot = randInt(4);
+      const flipX = randBool();
+      const flipY = randBool();
+      return transformImage(out, size, rot, flipX, flipY);
+    }
+
+    function drawBytes(bytes) {
+      ctx.putImageData(new ImageData(bytes, size, size), 0, 0);
+    }
+
+    function makeChessboard() {
+      const out = new Uint8ClampedArray(size * size * 4);
+      const tile = Math.max(1, size >> 4);
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const i = (y * size + x) * 4;
+          const dark = (((x / tile) | 0) + ((y / tile) | 0)) % 2 === 0;
+          const v = dark ? 18 : 72;
+          out[i] = out[i + 1] = out[i + 2] = v;
+          out[i + 3] = 255;
+        }
+      }
+      return out;
+    }
+
+    function renderChessboard() {
+      const board = makeChessboard();
+      drawBytes(board);
+      current = board;
+    }
+
+    function rebuildPool() {
+      pool = [];
+      const count = getPoolSize();
+      for (let i = 0; i < count; i++) pool.push(generatePixels());
+    }
+
+    function nextFrame() {
+      if (!pool.length) rebuildPool();
+      return pool.shift();
+    }
+
+    function setModeLabel() {
+      modeState.textContent = blackWhiteMode ? 'on' : 'off';
+    }
+
+    function fastModeActive() {
+      return performance.now() < fastModeUntil;
+    }
+
+    function updateBurst() {
+      const now = performance.now();
+      clickTimes = clickTimes.filter(t => now - t < FAST_CLICK_WINDOW);
+      clickTimes.push(now);
+      if (clickTimes.length >= FAST_CLICK_COUNT) {
+        fastModeUntil = now + FAST_MODE_MS;
+        clickTimes = [];
+      }
+    }
+
+    function renderTransition(oldPx, newPx, t) {
+      const out = new Uint8ClampedArray(oldPx.length);
+      const band = Math.max(1, Math.floor(size / 180));
+      const maxSum = (size - 1) + (size - 1);
+      const sweep = maxSum + band - t * (maxSum + band * 2);
+
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const i = (y * size + x) * 4;
+          const s = x + y;
+          if (s < sweep - band) {
+            out[i] = oldPx[i];
+            out[i + 1] = oldPx[i + 1];
+            out[i + 2] = oldPx[i + 2];
+          } else if (s > sweep + band) {
+            out[i] = newPx[i];
+            out[i + 1] = newPx[i + 1];
+            out[i + 2] = newPx[i + 2];
+          } else {
+            const d = 1 - Math.abs((s - sweep) / band);
+            const a = oldPx[i], b = newPx[i];
+            const c = oldPx[i + 1], e = newPx[i + 1];
+            const f = oldPx[i + 2], g = newPx[i + 2];
+            const blend = 0.5 + d * 0.5;
+            out[i] = ((a * (1 - blend)) + (b * blend)) | 0;
+            out[i + 1] = ((c * (1 - blend)) + (e * blend)) | 0;
+            out[i + 2] = ((f * (1 - blend)) + (g * blend)) | 0;
+          }
+          out[i + 3] = 255;
+        }
+      }
+
+      drawBytes(out);
+    }
+
+    function animateSwap(nextPx) {
+      if (!shouldAnimate()) {
+        current = nextPx;
+        drawBytes(current);
+        return;
+      }
+
+      cancelAnimationFrame(animId);
+      animating = true;
+      const from = current;
+      const start = performance.now();
+
+      const tick = (now) => {
+        const t = Math.min(1, (now - start) / TRANSITION_MS);
+        renderTransition(from, nextPx, t);
+        if (t < 1) {
+          animId = requestAnimationFrame(tick);
+        } else {
+          animating = false;
+          current = nextPx;
+          drawBytes(current);
+          if (queued) {
+            const q = queued;
+            queued = null;
+            doReroll(q);
+          }
+        }
+      };
+
+      animId = requestAnimationFrame(tick);
+    }
+
+    function doReroll(nextPx = nextFrame()) {
+      if (!current) {
+        current = nextPx;
+        drawBytes(current);
+        return;
+      }
+
+      if (animating) {
+        queued = nextPx;
+        cancelAnimationFrame(animId);
+        animating = false;
+        current = nextPx;
+        drawBytes(current);
+        return;
+      }
+
+      if (fastModeActive() || !shouldAnimate()) {
+        current = nextPx;
+        drawBytes(current);
+        return;
+      }
+
+      animateSwap(nextPx);
+    }
+
+    function downloadCurrent() {
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `noise-2^${pow}-${blackWhiteMode ? 'bw' : 'rgb'}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }, 'image/png');
+    }
+
+    function toggleMenu(force) {
+      const open = typeof force === 'boolean' ? force : !menu.classList.contains('open');
+      menu.classList.toggle('open', open);
+      menu.setAttribute('aria-hidden', String(!open));
+    }
+
+    function cycleResolution() {
+      pow = pow >= POW_MAX ? POW_MIN : pow + 1;
+      size = 1 << pow;
+      setCanvasSize();
+      rebuildPool();
+      renderChessboard();
+    }
+
+    function toggleBW() {
+      blackWhiteMode = !blackWhiteMode;
+      setModeLabel();
+      rebuildPool();
+      renderChessboard();
+    }
+
+    function startRerollHold() {
+      rerollHoldTriggered = false;
+      clearTimeout(rerollHoldTimer);
+      rerollHoldTimer = setTimeout(() => {
+        rerollHoldTriggered = true;
+        toggleBW();
+        if (navigator.vibrate) navigator.vibrate([18, 18, 18]);
+      }, MODE_HOLD_MS);
+    }
+
+    function cancelRerollHold() {
+      clearTimeout(rerollHoldTimer);
+      rerollHoldTimer = null;
+    }
+
+    function startSaveHold() {
+      saveTriggered = false;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        saveTriggered = true;
+        downloadCurrent();
+        if (navigator.vibrate) navigator.vibrate(20);
+      }, SAVE_HOLD_MS);
+    }
+
+    function cancelSaveHold() {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+    }
+
+    setCanvasSize();
+    setModeLabel();
+    rebuildPool();
+    renderChessboard();
+
+    dotsBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      toggleMenu();
+    });
+
+    rerollBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      updateBurst();
+      startRerollHold();
+    });
+
+    rerollBtn.addEventListener('pointerup', (e) => {
+      e.preventDefault();
+      if (!rerollHoldTriggered) {
+        cancelRerollHold();
+        doReroll();
+      }
+    });
+
+    rerollBtn.addEventListener('pointercancel', cancelRerollHold);
+    rerollBtn.addEventListener('pointerleave', cancelRerollHold);
+    rerollBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    toggleModeBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      toggleBW();
+    });
+
+    downloadBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      downloadCurrent();
+    });
+
+    resBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      cycleResolution();
+    });
+
+    canvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      startSaveHold();
+    });
+
+    canvas.addEventListener('pointerup', (e) => {
+      e.preventDefault();
+      if (!saveTriggered) cancelSaveHold();
+    });
+
+    canvas.addEventListener('pointercancel', cancelSaveHold);
+    canvas.addEventListener('pointerleave', cancelSaveHold);
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    document.addEventListener('pointerdown', (e) => {
+      if (!menu.contains(e.target) && e.target !== dotsBtn) toggleMenu(false);
+    });
+  </script></body>
 </html>
