@@ -1,0 +1,39 @@
+function startSaveHold() {
+    saveTriggered = false;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      saveTriggered = true;
+      savePNG();
+      if (navigator.vibrate) navigator.vibrate(20);
+    }, SAVE_HOLD_MS);
+  }
+  function cancelSaveHold() { clearTimeout(saveTimer); saveTimer = 0; }
+
+  // init
+  updateCanvasSize();
+  setModeLabel();
+  current = makeChess();
+  draw(current);
+  rebuildPool();
+
+  dotsBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); toggleMenu(); });
+  rerollBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); updateBurst(); startRerollHold(); });
+  rerollBtn.addEventListener('pointerup', (e) => { e.preventDefault(); if (!rerollHoldTriggered) { cancelRerollHold(); reroll(); } });
+  rerollBtn.addEventListener('pointercancel', cancelRerollHold);
+  rerollBtn.addEventListener('pointerleave', cancelRerollHold);
+  rerollBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  toggleModeBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); toggleBW(); });
+  downloadBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); savePNG(); });
+  resBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); cycleRes(); });
+
+  canvas.addEventListener('pointerdown', (e) => { e.preventDefault(); startSaveHold(); });
+  canvas.addEventListener('pointerup', (e) => { e.preventDefault(); if (!saveTriggered) cancelSaveHold(); });
+  canvas.addEventListener('pointercancel', cancelSaveHold);
+  canvas.addEventListener('pointerleave', cancelSaveHold);
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  document.addEventListener('pointerdown', (e) => { if (!menu.contains(e.target) && e.target !== dotsBtn) setMenu(false); });
+})();
+</script></body>
+</html>
