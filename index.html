@@ -1,39 +1,158 @@
-function startSaveHold() {
-    saveTriggered = false;
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      saveTriggered = true;
-      savePNG();
-      if (navigator.vibrate) navigator.vibrate(20);
-    }, SAVE_HOLD_MS);
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#000000" />
+<title>REROLL</title>
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #000;
+  --panel: rgba(14,14,14,.96);
+  --line: rgba(255,255,255,.16);
+  --line-strong: rgba(255,255,255,.28);
+  --text: #fff;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
+
+.app {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr auto;
+}
+
+.stage-wrap {
+  display: grid;
+  place-items: center;
+}
+
+.stage {
+  width: min(90vw, 500px);
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.bottom {
+  position: fixed;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+button {
+  padding: 12px 16px;
+  border: 1px solid #444;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+  <div class="stage-wrap">
+    <div class="stage">
+      <canvas id="canvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="bottom">
+  <button id="dots">•••</button>
+  <button id="reroll">REROLL</button>
+</div>
+
+<script>
+(() => {
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const dotsBtn = document.getElementById('dots');
+const rerollBtn = document.getElementById('reroll');
+
+let size = 256;
+let current = null;
+
+function updateCanvasSize() {
+  canvas.width = size;
+  canvas.height = size;
+}
+
+function rand() {
+  return Math.floor(Math.random() * 255);
+}
+
+function makeImage() {
+  const data = new Uint8ClampedArray(size * size * 4);
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = rand();
+    data[i+1] = rand();
+    data[i+2] = rand();
+    data[i+3] = 255;
   }
-  function cancelSaveHold() { clearTimeout(saveTimer); saveTimer = 0; }
+  return data;
+}
 
-  // init
-  updateCanvasSize();
-  setModeLabel();
-  current = makeChess();
+function draw(img) {
+  ctx.putImageData(new ImageData(img, size, size), 0, 0);
+}
+
+function reroll() {
+  current = makeImage();
   draw(current);
-  rebuildPool();
+}
 
-  dotsBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); toggleMenu(); });
-  rerollBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); updateBurst(); startRerollHold(); });
-  rerollBtn.addEventListener('pointerup', (e) => { e.preventDefault(); if (!rerollHoldTriggered) { cancelRerollHold(); reroll(); } });
-  rerollBtn.addEventListener('pointercancel', cancelRerollHold);
-  rerollBtn.addEventListener('pointerleave', cancelRerollHold);
-  rerollBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+function savePNG() {
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
 
-  toggleModeBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); toggleBW(); });
-  downloadBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); savePNG(); });
-  resBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); cycleRes(); });
+    // 🔥 ИСПРАВЛЕННАЯ СТРОКА
+    a.download = `noise-${size}.png`;
 
-  canvas.addEventListener('pointerdown', (e) => { e.preventDefault(); startSaveHold(); });
-  canvas.addEventListener('pointerup', (e) => { e.preventDefault(); if (!saveTriggered) cancelSaveHold(); });
-  canvas.addEventListener('pointercancel', cancelSaveHold);
-  canvas.addEventListener('pointerleave', cancelSaveHold);
-  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+}
 
-  document.addEventListener('pointerdown', (e) => { if (!menu.contains(e.target) && e.target !== dotsBtn) setMenu(false); });
+// init
+updateCanvasSize();
+reroll();
+
+// events
+rerollBtn.addEventListener('click', reroll);
+dotsBtn.addEventListener('click', savePNG);
+
 })();
-</script></body>
+</script>
+
+</body>
 </html>
